@@ -31,9 +31,9 @@ popgen <- function(label, sims, n, pa, alpha, delta, pw_a1, pw_a0){
     # Indicator for confounder.
     w     = a*rbern(ns, pw_a1) + (1-a)*rbern(ns, pw_a0),
     # Potential outcome for person under no treatment
-    y0    = rbern(ns, expit(alpha + w)),
+    y0    = rbern(ns, expit(alpha + 0.5*w)),
     # Potential outcome for person under treatment
-    y1    = rbern(ns, expit(alpha + w + delta)),
+    y1    = rbern(ns, expit(alpha + 0.5*w + delta)),
     # Observed outcome
     y     = a*y1 + (1-a)*y0
   )
@@ -97,7 +97,7 @@ psest <- function(cohort, form = a ~ w){
       # Probability of treatment in the cohort
       pa_o = sum(a)/dplyr::n(),
       # Stabilized IPT weights.
-      ipw = a*(pa_o/ps) + (1-a)*(1-pa_o)/(1-ps),
+      ipw = a*(1/ps) + (1-a)*(1)/(1-ps),
       # SMR weights
       smr = a*1 + (1-a)*(ps/(1-ps))
     )
@@ -182,7 +182,9 @@ effect_tib <- function(wght, r1, r0){
   dplyr::tibble(
     type = wght,
     lnrr   = log(r1/r0),
-    lnor   = log(or_est(r1, r0))
+    lnor   = log(or_est(r1, r0)),
+    r1 = r1,
+    r0 = r0
   )
 
 }

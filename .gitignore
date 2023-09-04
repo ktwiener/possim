@@ -54,4 +54,9 @@ rsconnect/
 .RData
 .Ruserdata
 *.Rproj
+*.csv
+results/*
+scratch/*
+data/*
+
 

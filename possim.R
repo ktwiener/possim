@@ -1,83 +1,61 @@
-## Script to run through simulations
+# Script to run through simulations ----
+
+## Set up environment/libraries ----
 library(dplyr)
 library(geex)
+library (furrr)
 devtools::load_all()
+future::plan(multisession)
 
-## Create population settings
+## ## Simulation settings ----
+effects <- calculate_effects(settings)
+
+settings_tbl(effects) |>
+  write.csv(file = sprintf("results/settings-%s-sims%s-scen%s.csv", Sys.Date(), settings$sims[1], nrow(settings)))
+
+## Create population based on settings ----
 pop <- purrr::pmap_dfr(
-  .l = settings[1,],
+  .l = settings,
   .f = popgen
 )
 
-## Simulation settings
-settings_tbl(settings) |>
-  write.csv(file = "settings.csv")
-
-## Estimate propensity scores
-## nest for multiple simulations
+## M-estimation for effect estimates and variance.----
+### nested for multiple simulations ----
 ests <- pop |>
-  dplyr::filter(sim == 1, scenario == "Full exchangeability") |>
-  group_by(scenario, sim) |>
-  tidyr::nest(data = c(2, 4:last_col())) |>
+  group_by(scenario, delta, sim) |>
+  tidyr::nest(data = c(3, 5:last_col())) |>
   dplyr::mutate(
     ests = purrr::map(data,
-                        ~{
+                        function(dset) {
                           m <- geex::m_estimate(
-                          estFUN = eefun_ipt,
-                          data = .x,
-                          root_control = setup_root_control(start = c(-2, 0, .5, .5, .5, 0.5, .5, .5)))
+                            estFUN = eefun_ipt,
+                            data = dset,
+                            root_control = setup_root_control(FUN = lm_redo,
+                                                              start = c(-2, .5, rep(.5, 8)),
+                                                              roots_name = "par")
+                          )
 
-                          # dplyr::tibble(
-                          #   pars = c("ps_int", "ps_coeff", "risk1", "risk2", "or", "rr"),
-                          #   ests = m@estimates,
-                          #   vars = diag(m@vcov)
-                          # )
-
-                          m
+                          list(
+                            pars = c("ps_beta0", "ps_beta1",
+                                     "ef_ipt_r1", "ef_ipt_r0", "ef_ipt_lnrr", "ef_ipt_lnor",
+                                     "ef_smr_r1", "ef_smr_r0", "ef_smr_lnrr", "ef_smr_lnor"),
+                            ests = m@estimates,
+                            vars = diag(m@vcov)
+                          )
                         }
                       )
     )
 
-ests |>
-  select(-data) |>
-  ungroup() |>
-  tidyr::unnest(cols = ests) |>
-  dplyr::group_by(pars)|>
-  dplyr::summarize(
-    avg_lnest = mean(log(ests)),
-    avg_est = exp(avg_lnest)
-  )
-#
-# pspop |>
-#   filter(sim == 1) |>
-#   distinct(a, w, smr) |>
-#   arrange(a,w)
-#
-# pspop |>
-#   filter(sim == 1) |>
-#   group_by(a, w) |>
-#   tally()
+### Join results to settings and save to future proof ----
+results <- ests |>
+  dplyr::left_join(effects %>% mutate(scenario = label, delta, deltarr = log(deltaRR)),
+                   by = c("scenario", "delta")) |>
+  select(-data)
 
-## Create estimates
+saveRDS(results, sprintf("data/%s-sims%s-scen%s.rds", Sys.Date(), settings$sims[1], nrow(settings)))
 
-ests <- pspop |>
-  dplyr::mutate(
-    estimates = purrr::map(psdata, cond_effects)
-  )
+## Performance measures ----
 
-
-## Calculate variances
-unweighted_variance <- estimate_variance(pop)
-bootstrap_variance  <- estimate_bootstrap_variance(pop, bootstraps = 100)
-
-all_variance <- dplyr::bind_rows(bootstrap_variance) |>
-  dplyr::arrange(scenario, sim, type)
-
-
-measures <- performance_measures(estimates, all_variance,
-                                 delta = log(1), sims = settings$sims[1])
-
-measures %>%
-  select(type, ends_with("lnrr")) |>
-  write.csv("lnrr_measures_partial.csv")
-
+results |>
+  performance_measures() |>
+  performance_summary()

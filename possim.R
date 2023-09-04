@@ -52,7 +52,7 @@ results <- ests |>
                    by = c("scenario", "delta")) |>
   select(-data)
 
-saveRDS(results, sprintf("data/%s-sims%s-scen%s.rds", Sys.Date(), settings$sims[1], nrow(settings)))
+saveRDS(results, sprintf("data/%s-sims%s-scen%s-pa%s.rds", Sys.Date(), settings$sims[1], nrow(settings), settings$pa[1]*10))
 
 ## Performance measures ----
 

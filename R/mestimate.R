@@ -12,9 +12,9 @@ eefun_ipt <- function(data){
     betas <- theta[1:2]
     mu <- theta[3:4]
     delta <- theta[5:6]
-
     mu_smr <- theta[7:8]
     delta_smr <- theta[9:10]
+
     # estimate logistic regression parameters
     pscore <-  plogis(confounders %*% betas)
     ests <- (trt - pscore) %*% confounders
@@ -28,12 +28,12 @@ eefun_ipt <- function(data){
     ef_ipt_lnor <- log(mu[1]*(1-mu[2])) - log(mu[2]*(1-mu[1])) - delta[2]
 
     ## SMR weights
-      smr <- trt*1 + (1-trt)*pscore/(1-pscore)
-      ef_smr_r1 <- trt*(outcome - mu_smr[1])
-      ef_smr_r0 <- (1 - trt)*smr*(outcome - mu_smr[2])
+    smr <- trt*1 + (1-trt)*pscore/(1-pscore)
+    ef_smr_r1 <- trt*(outcome - mu_smr[1])
+    ef_smr_r0 <- (1 - trt)*smr*(outcome - mu_smr[2])
 
-      ef_smr_lnrr <- log(mu_smr[1]) - log(mu_smr[2]) - delta_smr[1]
-      ef_smr_lnor <- log(mu_smr[1]*(1-mu_smr[2])) - log(mu_smr[2]*(1-mu_smr[1])) - delta_smr[2]
+    ef_smr_lnrr <- log(mu_smr[1]) - log(mu_smr[2]) - delta_smr[1]
+    ef_smr_lnor <- log(mu_smr[1]*(1-mu_smr[2])) - log(mu_smr[2]*(1-mu_smr[1])) - delta_smr[2]
 
 
     return(c(ests, ef_ipt_r1, ef_ipt_r0, ef_ipt_lnrr, ef_ipt_lnor,

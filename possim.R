@@ -4,8 +4,11 @@
 library(dplyr)
 library(geex)
 library (furrr)
-devtools::load_all()
-future::plan(multisession)
+library(minpack.lm)
+
+all_scripts <- list.files("R", pattern = "*.R", full.names = T)
+purrr::walk(all_scripts, source)
+#devtools::load_all()
 
 ## ## Simulation settings ----
 effects <- calculate_effects(settings)
@@ -21,33 +24,37 @@ pop <- purrr::pmap_dfr(
 
 ## M-estimation for effect estimates and variance.----
 ### nested for multiple simulations ----
-ests <- pop |>
+prep_pop <- pop |>
   group_by(scenario, delta, sim) |>
-  tidyr::nest(data = c(3, 5:last_col())) |>
-  dplyr::mutate(
-    ests = purrr::map(data,
-                        function(dset) {
-                          m <- geex::m_estimate(
-                            estFUN = eefun_ipt,
-                            data = dset,
-                            root_control = setup_root_control(FUN = lm_redo,
-                                                              start = c(-2, .5, rep(.5, 8)),
-                                                              roots_name = "par")
-                          )
+  tidyr::nest(data = c(3, 5:last_col()))
 
-                          list(
-                            pars = c("ps_beta0", "ps_beta1",
-                                     "ef_ipt_r1", "ef_ipt_r0", "ef_ipt_lnrr", "ef_ipt_lnor",
-                                     "ef_smr_r1", "ef_smr_r0", "ef_smr_lnrr", "ef_smr_lnor"),
-                            ests = m@estimates,
-                            vars = diag(m@vcov)
-                          )
-                        }
-                      )
-    )
+future::plan(multisession)
+start <- Sys.time()
+prep_pop$ests <- furrr::future_map(prep_pop$data,
+                  function(dset) {
+                    m <- geex::m_estimate(
+                      estFUN = eefun_ipt,
+                      data = as.data.frame(dset),
+                      root_control = setup_root_control(FUN = lm_redo,
+                                                        start = c(-2, .5, rep(.5, 8)),
+                                                        roots_name = "par")
+                    )
+
+                    list(
+                      pars = c("ps_beta0", "ps_beta1",
+                               "ef_ipt_r1", "ef_ipt_r0", "ef_ipt_lnrr", "ef_ipt_lnor",
+                               "ef_smr_r1", "ef_smr_r0", "ef_smr_lnrr", "ef_smr_lnor"),
+                      ests = m@estimates,
+                      vars = diag(m@vcov)
+                    )
+                  }
+)
+
+end <- Sys.time()
+furrr_time2 <- end - start
 
 ### Join results to settings and save to future proof ----
-results <- ests |>
+results <- prep_pop |>
   dplyr::left_join(effects %>% mutate(scenario = label, delta, deltarr = log(deltaRR)),
                    by = c("scenario", "delta")) |>
   select(-data)
@@ -59,3 +66,4 @@ saveRDS(results, sprintf("data/%s-sims%s-scen%s-pa%s.rds", Sys.Date(), settings$
 results |>
   performance_measures() |>
   performance_summary()
+

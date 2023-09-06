@@ -4,10 +4,10 @@
 
 settings <- tibble::tribble(
   ~label,                 ~sims,  ~n, ~pa, ~alpha, ~delta,  ~pw_a1, ~pw_a0,
-  "Full exchangeability",    10, 6000, 0.2,      -2, log(1),   0.5,    0.5,
-  "Partial exchangeability", 10, 6000, 0.2,      -2, log(1),     1,    0.5,
-  "Full exchangeability",    10, 6000, 0.2,      -2, log(0.8), 0.5,    0.5,
-  "Partial exchangeability", 10, 6000, 0.2,      -2, log(0.8),   1,    0.5
+  "Full exchangeability",    20, 6000, 0.2,      -2, log(1),   0.5,    0.5,
+  "Partial exchangeability", 20, 6000, 0.2,      -2, log(1),     1,    0.5,
+  "Full exchangeability",    20, 6000, 0.2,      -2, log(0.8), 0.5,    0.5,
+  "Partial exchangeability", 20, 6000, 0.2,      -2, log(0.8),   1,    0.5
 )
 
 setting_lbls <- list(

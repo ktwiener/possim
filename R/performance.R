@@ -28,5 +28,5 @@ performance_summary <- function(x) {
       eval = mean(ests)
     ) |>
     dplyr::mutate(bias = eval - delta,
-                  mc_var_bias = (ese^2)/sims)
+                  mc_se_bias = ese/sqrt(sims))
 }

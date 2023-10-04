@@ -14,12 +14,13 @@
 #' @return A simulated population
 #' @export
 #'
-popgen <- function(label, sims, n, pa, alpha, delta, pw_a1, pw_a0){
+popgen <- function(label, effect, sims, n, pa, alpha, delta, eta, pw_a1, pw_a0, wbeta){
 
   ns <- sims * n # Full population size
 
   dplyr::tibble(
     scenario = label,
+    effect = effect,
     delta = delta,
     # Patient ID
     rowid = 1:(ns),
@@ -32,9 +33,9 @@ popgen <- function(label, sims, n, pa, alpha, delta, pw_a1, pw_a0){
     # Indicator for confounder.
     w     = a*rbern(ns, pw_a1) + (1-a)*rbern(ns, pw_a0),
     # Potential outcome for person under no treatment
-    y0    = rbern(ns, expit(alpha + 0.5*w)),
+    y0    = rbern(ns, expit(alpha + wbeta*w)),
     # Potential outcome for person under treatment
-    y1    = rbern(ns, expit(alpha + 0.5*w + delta)),
+    y1    = rbern(ns, expit(alpha + wbeta*w + delta + w*eta)),
     # Observed outcome
     y     = a*y1 + (1-a)*y0
   )

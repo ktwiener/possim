@@ -1,13 +1,21 @@
 # Script to run through simulations ----
-
+setwd("~/Documents/Development/possim")
 ## Set up environment/libraries ----
 library(dplyr)
 library(geex)
 library (furrr)
 library(minpack.lm)
 
+# Prevalence of treatment
+pa <- 0.2
+# Number of simulations
+sims <- 1000
+# Number of patients per simulation
+n <- 6000
+
+
 all_scripts <- list.files("R", pattern = "*.R", full.names = T)
-purrr::walk(all_scripts, source)
+purrr::walk(all_scripts[-5], source)
 #devtools::load_all()
 
 ## ## Simulation settings ----
@@ -17,6 +25,7 @@ settings_tbl(effects) |>
   write.csv(file = sprintf("results/settings-%s-sims%s-scen%s.csv", Sys.Date(), settings$sims[1], nrow(settings)))
 
 ## Create population based on settings ----
+
 pop <- purrr::pmap_dfr(
   .l = settings,
   .f = popgen
@@ -25,8 +34,11 @@ pop <- purrr::pmap_dfr(
 ## M-estimation for effect estimates and variance.----
 ### nested for multiple simulations ----
 prep_pop <- pop |>
-  group_by(scenario, delta, sim) |>
-  tidyr::nest(data = c(3, 5:last_col()))
+  group_by(scenario, effect) |>
+  tidyr::nest(data = c(4, 6:last_col()))
+
+test_settings(prep_pop) |>
+  arrange(desc(effect), scenario)
 
 future::plan(multisession)
 start <- Sys.time()
@@ -55,15 +67,11 @@ furrr_time2 <- end - start
 
 ### Join results to settings and save to future proof ----
 results <- prep_pop |>
-  dplyr::left_join(effects %>% mutate(scenario = label, delta, deltarr = log(deltaRR)),
-                   by = c("scenario", "delta")) |>
+  dplyr::left_join(effects %>% mutate(scenario = label),
+                   by = c("scenario", "effect")) |>
   select(-data)
 
 saveRDS(results, sprintf("data/%s-sims%s-scen%s-pa%s.rds", Sys.Date(), settings$sims[1], nrow(settings), settings$pa[1]*10))
 
-## Performance measures ----
 
-results |>
-  performance_measures() |>
-  performance_summary()
 

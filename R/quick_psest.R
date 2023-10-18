@@ -1,19 +1,37 @@
 
 
 test_settings <- function(prep_pop){
+
   prep_pop |>
     dplyr::mutate(
-      ps_results = purrr::map(data, quick_psest),
+      ps_results = purrr::map(data, quick_psest)
+      )-> hold
+
+  hold |>
+    dplyr::mutate(
       emp_ests = purrr::map(ps_results, emp_est_ps)
     ) |>
     tidyr::unnest(cols = emp_ests) |>
-    dplyr::group_by(scenario, effect) |>
+    dplyr::group_by(scenario, effect, pw) |>
     dplyr::summarize(
+      rr = exp(mean(lnrr)),
       across(ends_with("ipt"), ~mean(.x)),
-      across(ends_with("smr"), ~mean(.x))
+      across(ends_with("smr"), ~mean(.x)),
+      rr_hajek_ipt = exp(lnrr_hajek_ipt),
+      rr_ht_ipt = exp(lnrr_ht_ipt),
+      rrsmr = exp(lnrrsmr),
     ) |>
-    dplyr::select(scenario, effect, starts_with("ln"), starts_with("r")) |>
-    dplyr::mutate(across(starts_with("ln"), ~exp(.x)))
+    dplyr::select(scenario, effect, pw,
+                  starts_with("r"), starts_with("n")) |>
+    arrange(pw, desc(effect), scenario) -> fin
+
+  ps1 <- hold %>%
+    ungroup %>%
+    dplyr::filter(sim == 1) %>%
+    select(scenario, effect, pw, ps_results)
+
+  list(ps_results = ps1,
+       emp_ests = fin)
 }
 quick_psest <- function(dset){
 
@@ -40,15 +58,18 @@ emp_est_ps <- function(weights) {
       tot = n(),
       r1 = sum(a*y)/sum(a),
       r0 = sum((1-a)*y)/sum(1-a),
-      rr = r1/r0,
+      lnrr = log(r1/r0),
+      n1ipt = sum(a*ipt),
+      n0ipt = sum((1-a)*ipt),
       r1ipt = sum(a*y*ipt)/sum(a*ipt),
       r0ipt = sum((1-a)*y*ipt)/sum((1-a)*ipt),
-      r1_mipt = (1/tot)*sum(a*y*ipt)/(1/tot*sum(a*ipt)),
+      r1_mipt = (1/tot)*sum(a*y*ipt),
       r0_mipt = (1/tot)*sum((1-a)*y*ipt),
-      rript = r1ipt/r0ipt,
+      lnrr_hajek_ipt = log(r1ipt/r0ipt),
+      lnrr_ht_ipt = log(r1_mipt/r0_mipt),
       r1smr = sum(a*y*smr)/sum(a*smr),
       r0smr = sum((1-a)*y*smr)/sum((1-a)*smr),
-      rrsmr = r1smr/r0smr
+      lnrrsmr = log(r1smr/r0smr)
     )
 }
 

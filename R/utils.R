@@ -14,7 +14,7 @@
 
 
 expit <- function(x) exp(x)/(1+exp(x))
-
+or_func <- function(risk1, risk0) risk1*(1-risk0)/(risk0*(1-risk1))
 #' The Bernoulli distribution
 #'
 #' @description Random generation for the Bernoulli distribution with parameters `prob`

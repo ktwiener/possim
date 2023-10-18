@@ -12,8 +12,10 @@ eefun_ipt <- function(data){
     betas <- theta[1:2]
     mu <- theta[3:4]
     delta <- theta[5:6]
-    mu_smr <- theta[7:8]
-    delta_smr <- theta[9:10]
+    mu_hajek <- theta[7:8]
+    delta_hajek <- theta[9:10]
+    mu_smr <- theta[11:12]
+    delta_smr <- theta[13:14]
 
     # estimate logistic regression parameters
     pscore <-  plogis(confounders %*% betas)
@@ -21,11 +23,20 @@ eefun_ipt <- function(data){
 
     ## IPT weights
     ipt <- trt/pscore + (1-trt)/(1-pscore)
+
+    ## Weighted risks
     ef_ipt_r1 <- trt*ipt*outcome - mu[1]
     ef_ipt_r0 <- (1 - trt)*ipt*outcome - mu[2]
 
+    ef_ipt_hajek_r1 <- trt*ipt*(outcome - mu_hajek[1])
+    ef_ipt_hajek_r0 <- (1 - trt)*ipt*(outcome - mu_hajek[2])
+
+    ## IPT weighted effect estimates
     ef_ipt_lnrr <- log(mu[1]) - log(mu[2]) - delta[1]
     ef_ipt_lnor <- log(mu[1]*(1-mu[2])) - log(mu[2]*(1-mu[1])) - delta[2]
+
+    ef_ipt_hajek_lnrr <- log(mu_hajek[1]) - log(mu_hajek[2]) - delta_hajek[1]
+    ef_ipt_hajek_lnor <- log(mu_hajek[1]*(1-mu_hajek[2])) - log(mu_hajek[2]*(1-mu_hajek[1])) - delta_hajek[2]
 
     ## SMR weights
     smr <- trt*1 + (1-trt)*pscore/(1-pscore)
@@ -36,15 +47,17 @@ eefun_ipt <- function(data){
     ef_smr_lnor <- log(mu_smr[1]*(1-mu_smr[2])) - log(mu_smr[2]*(1-mu_smr[1])) - delta_smr[2]
 
 
-    return(c(ests, ef_ipt_r1, ef_ipt_r0, ef_ipt_lnrr, ef_ipt_lnor,
+    return(c(ests,
+             ef_ipt_r1, ef_ipt_r0, ef_ipt_lnrr, ef_ipt_lnor,
+             ef_ipt_hajek_r1, ef_ipt_hajek_r0, ef_ipt_hajek_lnrr, ef_ipt_hajek_lnor,
              ef_smr_r1, ef_smr_r0, ef_smr_lnrr, ef_smr_lnor))
   }
 }
 
 lm_redo <- function(f, start) {
   x <- minpack.lm::nls.lm(fn = f, par = start,
-                          lower = c(-Inf, -Inf, rep(c(0, 0, -Inf, -Inf), 2)),
-                          upper = c( Inf,  Inf, rep(c(1, 1,  Inf,  Inf), 2)),
+                          lower = c(-Inf, -Inf, rep(c(0, 0, -Inf, -Inf), 3)),
+                          upper = c( Inf,  Inf, rep(c(1, 1,  Inf,  Inf), 3)),
                           control = nls.lm.control(maxiter = 100))
   #x$root <- x$par
 

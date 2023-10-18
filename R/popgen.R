@@ -14,20 +14,16 @@
 #' @return A simulated population
 #' @export
 #'
-popgen <- function(label, effect, sims, n, pa, alpha, delta, eta, pw_a1, pw_a0, wbeta){
+popgen <- function(label, effect, pw, sims, n, pa, alpha, delta, eta, pw_a1, pw_a0, wbeta){
 
   ns <- sims * n # Full population size
 
   dplyr::tibble(
     scenario = label,
     effect = effect,
-    delta = delta,
-    # Patient ID
-    rowid = 1:(ns),
+    pw = pw,
     # Simulation number to group by
-    sim   = ceiling(rowid/n),
-    # Patient number within simulation
-    id    = ceiling(rowid/sim),
+    sim   = rep(1:sims, each = n),
     # Indicator variable for treatment
     a     = rbern(ns, pa),
     # Indicator for confounder.

@@ -3,33 +3,45 @@
 # This file contains the settings that will be applied to the simulation.
 
 logit <- function(p)log(p/(1-p))
-settings <- tibble::tribble(
-  ~label,                    ~effect,         ~delta    ,  ~pw_a1,
-  "Full exchangeability"   ,  "None"         ,  log(1)  ,     0.5,
-  "Partial exchangeability",  "None"         ,  log(1)  ,       1,
-  "Full exchangeability"   ,  "Homogeneous"  ,  log(0.8),     0.5,
-  "Partial exchangeability",  "Homogeneous" ,   log(0.8),       1,
-  "Full exchangeability"   ,  "Heterogeneous",  log(1.25)  ,     0.5,
-  "Partial exchangeability",  "Heterogeneous",  log(1.25)  ,       1
-) %>%
-  dplyr::mutate(
-    sims = sims,
-    n = n,
-    pa = pa,
-    wbeta = 1,
-    alpha = logit(0.06) - pa*delta - 0.5*wbeta,
-    pw_a0 = (0.5-pa*pw_a1)/(1-pa),
-    eta = if_else(effect == "Heterogeneous", log(1)/0.5 - 2*delta, 0)
-  )
+
+set_settings <- function(w, effects = c("None", "Homogeneous", "Heterogeneous")){
+  tibble::tribble(
+    ~label,                    ~effect,         ~delta    ,  ~pw_a1,
+    "Full exchangeability"   ,  "None"         ,  log(1)  ,       w,
+    "Partial exchangeability",  "None"         ,  log(1)  ,       1,
+    "Full exchangeability"   ,  "Homogeneous"  ,  deff,           w,
+    "Partial exchangeability",  "Homogeneous"  ,  deff,           1,
+    "Full exchangeability"   ,  "Heterogeneous",  11.5,           w,
+    "Partial exchangeability",  "Heterogeneous",  11.5,           1
+  ) %>%
+    dplyr::mutate(
+      pw_a0 = (w-pa*pw_a1)/(1-pa),
+      sims = sims,
+      n = n,
+      pa = pa,
+      alpha = logit(0.01),
+      wbeta = logit(0.08)-alpha,
+      #alpha = logit(0.10) - pa*delta - w*wbeta,
+      ## I want the ATT to be 0.8 -- log(5) + x = log(0.8) -> x = log(0.8) - log(5)
+      eta = if_else(effect != "None", deff - delta, 0),
+      pw = as.character(w)
+    ) %>%
+    dplyr::filter(effect %in% effects)
+}
+
 
 calculate_effects <- function(settings){
   settings |>
     dplyr::mutate(
+      w    = as.numeric(pw),
       y0w0 = expit(alpha),
-      y0w1 = expit(alpha + wbeta),
       y1w0 = expit(alpha + delta),
+      y0w1 = expit(alpha + wbeta),
       y1w1 = expit(alpha + wbeta + delta + eta),
-      ate = exp(0.5*delta + 0.5*(delta+eta)),
+      py0  = y0w1*pw_a0 + y0w0*(1-pw_a0),
+      py1  = y1w1*pw_a1 + y1w0*(1-pw_a1),
+      py   = py0*(1-pa) + py1*(pa),
+      ate = exp((1-w)*delta + w*(delta+eta)),
       att = exp(pw_a1*(delta+eta) + (1-pw_a1)*delta)
     )
 }

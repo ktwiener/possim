@@ -58,5 +58,5 @@ rsconnect/
 results/*
 scratch/*
 data/*
-
+.DS_Store
 

@@ -1,0 +1,44 @@
+## Visualizations
+source("R/viz_results.R")
+
+simulation_box(measures, "Homogeneous", T, prefix = esttype)
+simulation_box(measures, "None", T, prefix = esttype)
+simulation_box(measures, "Homogeneous", F, prefix = esttype)
+simulation_box(measures, "None", F, prefix = esttype)
+
+simulation_violin(measures, "Homogeneous", T, prefix = esttype)
+simulation_violin(measures, "None", T, prefix = esttype)
+simulation_violin(measures, "Homogeneous", F, prefix = esttype)
+simulation_violin(measures, "None", F, prefix = esttype)
+
+measure_summary %>%
+  arrange(desc(effect), scenario, pars, pw) %>%
+  mutate(weight = toupper(stringr::str_extract(pars,
+                                        pattern = "ipt|smr"))) %>%
+  dplyr::filter(!is.na(weight)) %>%
+  ungroup %>%
+  transmute(
+    trteffect = paste0(factor(effect, levels = c("None", "Homogeneous"), labels = c("No treatment effect", "Homogeneous treatment effect")),
+                       "(RR = ",  trimws(formatC(exp(delta), digits = 1)), ")"),
+    scenario = if_else(lag(scenario)==scenario & !is.na(lag(scenario)), "", scenario),
+    weight,
+    #weight = if_else(lag(weight)==weight & !is.na(lag(weight)), "", weight),
+    estimator = if_else(grepl("hajek|smr", pars), "Hajek", "Horvitz-Thompson"),
+    #estimator = if_else(lag(estimator)==estimator & !is.na(lag(estimator)), "", estimator),
+    pw,
+    across(c(bias, ase, ese, mse, cov), ~formatC(.x, digits = 2, format = "g"))
+  ) %>%
+  gt(groupname_col = c("trteffect")) %>%
+  cols_label(
+    scenario = "",
+    weight = "",
+    estimator = "",
+    pw = "P(W=1)",
+    bias = "Bias",
+    ase = "ASE",
+    ese = "ESE",
+    mse = "MSE",
+    cov = "Coverage"
+  ) %>%
+  gt::gtsave(paste0(esttype, "-rr-sims.rtf"), "data/results/")
+

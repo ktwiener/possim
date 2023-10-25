@@ -25,3 +25,12 @@ or_func <- function(risk1, risk0) risk1*(1-risk0)/(risk0*(1-risk1))
 #' @export
 
 rbern <- function(n, prob) rbinom(n, 1, prob)
+
+## Read in individual datasets
+read_chunked <- function(filepat){
+  all_sims <- list.files(path = "./data/simulations/", pattern = filepat, full.names = T)
+  purrr::map_dfr(
+    all_sims,
+    readRDS
+  )
+}

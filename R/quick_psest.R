@@ -4,26 +4,22 @@ test_settings <- function(prep_pop){
 
   prep_pop |>
     dplyr::mutate(
-      ps_results = purrr::map(data, quick_psest)
+      ps_results = furrr::future_map(data, quick_psest)
       )-> hold
 
   hold |>
     dplyr::mutate(
-      emp_ests = purrr::map(ps_results, emp_est_ps)
+      emp_ests = furrr::future_map(ps_results, emp_est_ps)
     ) |>
     tidyr::unnest(cols = emp_ests) |>
-    dplyr::group_by(scenario, effect, pw) |>
-    dplyr::summarize(
-      rr = exp(mean(lnrr)),
-      across(ends_with("ipt"), ~mean(.x)),
-      across(ends_with("smr"), ~mean(.x)),
-      rr_hajek_ipt = exp(lnrr_hajek_ipt),
-      rr_ht_ipt = exp(lnrr_ht_ipt),
-      rrsmr = exp(lnrrsmr),
-    ) |>
-    dplyr::select(scenario, effect, pw,
-                  starts_with("r"), starts_with("n")) |>
-    arrange(pw, desc(effect), scenario) -> fin
+    select(-c(data, ps_results, tot)) |>
+    tidyr::pivot_longer(cols = c(r1, r0, lnrr,
+                                 n1ipt, n0ipt,
+                                 r1ipt, r0ipt, lnrr_hajek_ipt,
+                                 r1_mipt, r0_mipt, lnrr_ht_ipt,
+                                 r1smr, r0smr, lnrrsmr)) |>
+    ungroup() -> fin
+
 
   ps1 <- hold %>%
     ungroup %>%
@@ -31,8 +27,28 @@ test_settings <- function(prep_pop){
     select(scenario, effect, pw, ps_results)
 
   list(ps_results = ps1,
-       emp_ests = fin)
+       sim_ests = fin)
 }
+
+sum_results <- function(x){
+  x %>%
+  dplyr::group_by(scenario, effect, pw, name) |>
+    dplyr::summarize(
+      number_sims = n(),
+      mean_value = mean(value),
+      var_value = var(value)
+    )
+}
+
+sum_rr <- function(x){
+  x %>%
+    dplyr::filter(grepl("rr", name)) %>%
+    dplyr::mutate(
+      name = gsub("ln", "", name),
+      mean_value = exp(mean_value)
+    )
+}
+
 quick_psest <- function(dset){
 
   dset$ps <-

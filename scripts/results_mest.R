@@ -29,18 +29,9 @@ results_mest <- purrr::pmap_dfr(
   dplyr::full_join(effects %>% mutate(scenario = label),
                    by = c("scenario", "effect", "pw"))
 
-saveRDS(results_mest, sprintf("data/%s-sims%s-scen%s-pa%s-%s.rds", Sys.Date(),
+saveRDS(results_mest, sprintf("data/combined/%s-sims%s-scen%s-pa%s-%s.rds", Sys.Date(),
                               settings$sims[1], nrow(settings), settings$pa[1]*10, esttype))
 
 
-## Performance measures mestimate----
 
-measures <- results_mest |>
-  performance_measures() %>%
-  filter(grepl("rr", pars))
-
-measure_summary <- measures |>
-  performance_summary()
-
-source("R/visualizations.R")
 

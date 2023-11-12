@@ -14,6 +14,9 @@
 
 
 expit <- function(x) exp(x)/(1+exp(x))
+
+logit <- function(p)log(p/(1-p))
+
 or_func <- function(risk1, risk0) risk1*(1-risk0)/(risk0*(1-risk1))
 #' The Bernoulli distribution
 #'

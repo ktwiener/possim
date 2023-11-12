@@ -1,15 +1,30 @@
 ## Visualizations
-source("R/viz_results.R")
+library(ggplot2)
+library(wesanderson)
+library(dplyr)
+library(gt)
+
+all_scripts <- list.files("R", pattern = "*.R", full.names = T)
+purrr::walk(all_scripts, source)
+
+esttype <- "mest"
+
+filenm <- dplyr::last(sort(list.files("data/results/raw", pattern = esttype, full.names = T)))
+
+all_measures <-readRDS(filenm)
+measures <- all_measures$measures
+
+
 
 simulation_box(measures, "Homogeneous", T, prefix = esttype)
 simulation_box(measures, "None", T, prefix = esttype)
 simulation_box(measures, "Homogeneous", F, prefix = esttype)
 simulation_box(measures, "None", F, prefix = esttype)
 
-simulation_violin(measures, "Homogeneous", T, prefix = esttype)
-simulation_violin(measures, "None", T, prefix = esttype)
-simulation_violin(measures, "Homogeneous", F, prefix = esttype)
-simulation_violin(measures, "None", F, prefix = esttype)
+# simulation_violin(measures, "Homogeneous", T, prefix = esttype)
+# simulation_violin(measures, "None", T, prefix = esttype)
+# simulation_violin(measures, "Homogeneous", F, prefix = esttype)
+# simulation_violin(measures, "None", F, prefix = esttype)
 
 measure_summary %>%
   arrange(desc(effect), scenario, pars, pw) %>%

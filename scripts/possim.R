@@ -26,7 +26,7 @@ n <- 6000
 pws <- c(0.25, 0.5, 0.75)
 
 all_scripts <- list.files("R", pattern = "*.R", full.names = T)
-purrr::walk(all_scripts[-5], source)
+purrr::walk(all_scripts, source)
 #devtools::load_all()
 
 settings <- purrr::map_dfr(
@@ -35,6 +35,9 @@ settings <- purrr::map_dfr(
   effects = c("None", "Homogeneous")
 )
 
+saveRDS(settings,
+        file = sprintf("data/settings/%s-sims%s-scen%s-pa%s-settings.rds", Sys.Date(),
+                       settings$sims[1], nrow(settings), settings$pa[1]*10))
 ## ## Simulation settings ----
 effects <- calculate_effects(settings)
 

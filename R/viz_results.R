@@ -1,7 +1,3 @@
-library(ggplot2)
-library(wesanderson)
-library(dplyr)
-library(gt)
 
 simulation_box <- function(x, eff = c("None", "Homogeneous"), hajek = T, prefix = "mest"){
   keep <- grepl("hajek", x$pars)
@@ -21,21 +17,22 @@ simulation_box <- function(x, eff = c("None", "Homogeneous"), hajek = T, prefix 
     dplyr::mutate(pars = factor(pars,
                                 levels = c("ef_ipt_hajek_lnrr", "lnrr_hajek_ipt", "ef_ipt_lnrr", "lnrr_ht_ipt", "ef_smr_lnrr", "lnrrsmr"),
                                 labels = c("IPT (Hajek)","IPT (Hajek)", "IPT (Horvitz-Thompson)", "IPT (Horvitz-Thompson)", "SMR", "SMR"))) %>%
-    dplyr::mutate(pw = paste0("P(W=1) = ",pw)) %>%
-    ggplot(mapping = aes(y = ests, x = pars, color = pars)) +
-    geom_hline(yintercept = truth, alpha = 0.5, linetype = 2) +
+    dplyr::mutate(pw = paste0("P(W=1) = ",pw),
+                  bias = ests - delta) %>%
+    ggplot(mapping = aes(y = bias, x = pars, color = pars)) +
     geom_hline(yintercept = 0) +
-    geom_boxplot(outlier.shape = NA, width = 0.65) +
+    geom_boxplot(coef = 0, outlier.shape = NA, varwidth = T) +
     scale_y_continuous(limits = c(-1.6, 1.6)) +
-    geom_point(position = "jitter", alpha = 0.1) +
+    geom_violin(alpha = 0.5, aes(fill = pars)) +
     facet_grid(vars(scenario), vars(pw), switch = "y") +
-    scale_color_manual(values=wes_palette(n=2, name="Royal1")) +
+    scale_color_manual(values=wes_palette(n=2, name="Cavalcanti1"), guide = "none") +
+    scale_fill_manual(values=wes_palette(n=2, name="Cavalcanti1")) +
     theme_classic(base_size = 12) +
     theme(axis.title.x=element_blank(),
           axis.text.x=element_blank(),
           axis.line.x = element_blank(),
           axis.ticks.x=element_blank(),
-          axis.title.y = element_text(margin = margin(r = -55), size = 11),
+          axis.title.y = element_text(margin = margin(r = -50), size = 12),
           strip.text.y.left = element_text(angle = 0, size = 12, face = "bold"),
           strip.text.x.top = element_text(size = 12, face = "bold"),
           strip.background = element_blank(),
@@ -47,10 +44,10 @@ simulation_box <- function(x, eff = c("None", "Homogeneous"), hajek = T, prefix 
           legend.text = element_text(size = 11),
           legend.title = element_text(size = 12, face = "bold")
     ) +
-    ylab("log RR") +
-    labs(color = "Estimator")
+    ylab("log RR Bias") +
+    labs(fill = "Estimator")
 
-  ggsave(filename = sprintf("./data/results/%s-%s-%s-plot.png", prefix, tolower(eff), filenm),
+  ggsave(filename = sprintf("./data/results/figures/%s-%s-%s-plot.png", prefix, tolower(eff), filenm),
          plot = fig,
          units = "in",
          width = 5.5,

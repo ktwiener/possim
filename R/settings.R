@@ -2,8 +2,8 @@
 #
 # This file contains the settings that will be applied to the simulation.
 
-logit <- function(p)log(p/(1-p))
 set.seed(20130127)
+
 set_settings <- function(w, effects = c("None", "Homogeneous", "Heterogeneous")){
   tibble::tribble(
     ~label,                    ~effect,         ~delta    ,  ~pw_a1,

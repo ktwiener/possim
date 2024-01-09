@@ -12,7 +12,8 @@ simulation_box <- function(x, eff = c("None", "Homogeneous"), hajek = T, prefix 
     fig <-
     x %>%
     select(scenario, effect, pw, sims, delta, pars, ests) %>%
-    dplyr::mutate(scenario = gsub(" exchangeability", "", scenario)) %>%
+    dplyr::mutate(scenario = gsub(" exchangeability", "", scenario),
+                  scenario = gsub("Full", "Complete", scenario)) %>%
     filter(effect == eff, keep) %>%
     dplyr::mutate(pars = factor(pars,
                                 levels = c("ef_ipt_hajek_lnrr", "lnrr_hajek_ipt", "ef_ipt_lnrr", "lnrr_ht_ipt", "ef_smr_lnrr", "lnrrsmr"),
@@ -22,11 +23,11 @@ simulation_box <- function(x, eff = c("None", "Homogeneous"), hajek = T, prefix 
     ggplot(mapping = aes(y = bias, x = pars, color = pars)) +
     geom_hline(yintercept = 0) +
     geom_boxplot(coef = 0, outlier.shape = NA, varwidth = T) +
-    scale_y_continuous(limits = c(-1.6, 1.6)) +
+    scale_y_continuous(limits = c(-1, 2)) +
     geom_violin(alpha = 0.5, aes(fill = pars)) +
     facet_grid(vars(scenario), vars(pw), switch = "y") +
-    scale_color_manual(values=wes_palette(n=2, name="Cavalcanti1"), guide = "none") +
-    scale_fill_manual(values=wes_palette(n=2, name="Cavalcanti1")) +
+    scale_color_grey(guide = "none") +
+    scale_fill_grey() +
     theme_classic(base_size = 12) +
     theme(axis.title.x=element_blank(),
           axis.text.x=element_blank(),
@@ -44,8 +45,8 @@ simulation_box <- function(x, eff = c("None", "Homogeneous"), hajek = T, prefix 
           legend.text = element_text(size = 11),
           legend.title = element_text(size = 12, face = "bold")
     ) +
-    ylab("log RR Bias") +
-    labs(fill = "Estimator")
+    ylab("Error") +
+    labs(fill = "Weight")
 
   ggsave(filename = sprintf("./data/results/figures/%s-%s-%s-plot.png", prefix, tolower(eff), filenm),
          plot = fig,

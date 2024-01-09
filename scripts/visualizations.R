@@ -13,12 +13,27 @@ filenm <- dplyr::last(sort(list.files("data/results/raw", pattern = esttype, ful
 
 all_measures <-readRDS(filenm)
 measures <- all_measures$measures
+measures_summary <- performance_summary(measures)
 
 
 
-simulation_box(measures, "Homogeneous", T, prefix = esttype)
+simulation_box(measures, "Homogeneous", T, prefix = esttype) -> p
+p +
+  theme(
+        legend.position = "right"
+  )
+ggsave(filename = "./data/results/figures/mest-homogeneous-hajek-cirg-plot.png",
+       units = "in",
+       width = 7.5,
+       height = 4
+)
 simulation_box(measures, "None", T, prefix = esttype)
 simulation_box(measures, "Homogeneous", F, prefix = esttype)
+ggsave(filename = "./data/results/figures/mest-homogeneous-ht-cirg-plot.png",
+       units = "in",
+       width = 7.5,
+       height = 4
+)
 simulation_box(measures, "None", F, prefix = esttype)
 
 # simulation_violin(measures, "Homogeneous", T, prefix = esttype)
@@ -26,7 +41,7 @@ simulation_box(measures, "None", F, prefix = esttype)
 # simulation_violin(measures, "Homogeneous", F, prefix = esttype)
 # simulation_violin(measures, "None", F, prefix = esttype)
 
-measure_summary %>%
+measures_summary %>%
   arrange(desc(effect), scenario, pars, pw) %>%
   mutate(weight = toupper(stringr::str_extract(pars,
                                         pattern = "ipt|smr"))) %>%
@@ -41,7 +56,7 @@ measure_summary %>%
     estimator = if_else(grepl("hajek|smr", pars), "Hajek", "Horvitz-Thompson"),
     #estimator = if_else(lag(estimator)==estimator & !is.na(lag(estimator)), "", estimator),
     pw,
-    across(c(bias, ase, ese, mse, cov), ~formatC(.x, digits = 2, format = "g"))
+    across(c(bias, ase, ese, mse, cov), ~formatC(.x, digits = 2, format = "f"))
   ) %>%
   gt(groupname_col = c("trteffect")) %>%
   cols_label(

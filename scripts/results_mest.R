@@ -6,6 +6,7 @@ source("R/performance.R")
 source("R/utils.R")
 source("R/settings.R")
 
+settings <- readRDS(sort(list.files("data/settings/", full.names = T)))
 esttype <- "mest"
 effects <- calculate_effects(settings)
 

@@ -2,23 +2,24 @@
 #
 # This file contains the settings that will be applied to the simulation.
 
-set.seed(20130127)
 
 set_settings <- function(w, effects = c("None", "Homogeneous", "Heterogeneous")){
   tibble::tribble(
     ~label,                    ~effect,         ~delta    ,  ~pw_a1,
-    "Full exchangeability"   ,  "None"         ,  log(1)  ,       w,
+    "Full exchangeability"   ,  "None"         ,  log(1)  ,       0.5,
     "Partial exchangeability",  "None"         ,  log(1)  ,       1,
-    "Full exchangeability"   ,  "Homogeneous"  ,  deff,           w,
-    "Partial exchangeability",  "Homogeneous"  ,  deff,           1,
-    "Full exchangeability"   ,  "Heterogeneous",  11.5,           w,
-    "Partial exchangeability",  "Heterogeneous",  11.5,           1
+    "Full exchangeability"   ,  "Homogeneous"  ,  deff,           0.5,
+    "Partial exchangeability",  "Homogeneous"  ,  deff,           1
+    # "Full exchangeability"   ,  "Heterogeneous",  11.5,           w,
+    # "Partial exchangeability",  "Heterogeneous",  11.5,           1
   ) %>%
     dplyr::mutate(
       pw_a0 = (w-pa*pw_a1)/(1-pa),
       sims = sims,
       n = n,
       pa = pa,
+      pa1_w0 = (1-pw_a1)*pa/(1-w),
+      pa1_w1 = (pw_a1)*pa/(w),
       alpha = logit(0.01),
       wbeta = logit(0.08)-alpha,
       #alpha = logit(0.10) - pa*delta - w*wbeta,

@@ -34,6 +34,12 @@ popgen <- function(label, effect, pw, sims, n, pa, alpha, delta, eta, pw_a1, pw_
     y1    = rbern(ns, expit(alpha + wbeta*w + delta + w*eta)),
     # Observed outcome
     y     = a*y1 + (1-a)*y0
-  )
+  ) -> pop
+
+  dir.create(sprintf("data/population/%s", Sys.Date()), showWarnings = F)
+
+  saveRDS(pop, sprintf("data/population/%s/%s-%s-%s.rds", Sys.Date(),
+                       tolower(stringr::word(label, 1)), tolower(effect),
+                       100*as.numeric(pw)))
 
 }

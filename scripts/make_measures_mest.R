@@ -6,7 +6,7 @@ filenm <- dplyr::last(sort(list.files("data/combined", pattern = "-mest", full.n
 
 results_mest <- readRDS(filenm)
 
-settings <- readRDS(sort(list.files("data/settings/", full.names = T)))
+settings <- readRDS(dplyr::last(sort(list.files("data/settings", full.names = T))))
 
 summarize_weights(results_mest, settings)
 

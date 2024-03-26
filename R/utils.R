@@ -31,7 +31,8 @@ rbern <- function(n, prob) rbinom(n, 1, prob)
 
 ## Read in individual datasets
 read_chunked <- function(filepat){
-  all_sims <- list.files(path = "./data/simulations/", pattern = filepat, full.names = T)
+  last_folder <- dplyr::last(list.files(path = "./data/simulations", full.names = T))
+  all_sims <- list.files(path = paste0(last_folder, "/parts"), pattern = filepat, full.names = T)
   is <- stringr::str_extract(all_sims, "\\d+(?=[/\\d]*\\.)")
   purrr::map2_dfr(
     all_sims,

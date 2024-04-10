@@ -1,7 +1,7 @@
 ---
 title: "Identification conditions for the effect of treatment in the treated"
 author: Catie Wiener
-date: "January 12, 2024"
+date: "January 22, 2024"
 format: 
   beamer: 
     aspectratio: 32
@@ -16,57 +16,133 @@ csl: american-medical-association.csl
 
 ## 
 
-We can target different parameters of interest in causal inference, including the average treatment effect (ATE) and the average treatment effect in the treated (ATT)
+The average treatment effect (ATE) and the average treatment effect in the treated (ATT) are oft-targeted parameters of interest in causal inference.
 
--   The "identification conditions" of causal consistency, exchangeability, and positivity are sufficient to point-identify the ATE. @hernán2006
+**This presentation will:**
 
-This presentation will:
+1.  Provide an example where the ATE and ATT differ.
 
-1.  Describe conditions sufficient to point-identity the ATE and the ATT.
-
-2.  Provide an example where the ATE and ATT differ.
+2.  Describe conditions sufficient to point-identity the ATE and the ATT.
 
 3.  Demonstrate a simulation study where we vary the identification conditions.
 
-## Identification conditions
-
-$A =$ treatment (1: treated, 0: untreated), $W =$ set of measured confounders, $Y^{a} =$ potential outcome under treatment $A=a$
-
-### Average treatment effect (ATE)
-
-1.  Causal consistency: If $A_i = a, Y_i = Y_i^a$
-2.  Conditional exchangeability: $Y^a⊥A|W$
-3.  Positivity: $Pr(A=a|W=w)>0$, for all $w$ where $f(w)>0$
-
-### Average treatment effect in the treated (ATT)
-
-1.  Causal consistency: If $A_i = a, Y_i = Y_i^a$
-2.  Partial conditional exchangeability: $Y^{a=0}⊥A|W$
-3.  Partial positivity: $Pr(A=a|W=w)>0$, for all $w$ where $f(w|A=1)>0$
-
-## Motivating example
+## Motivation: tPA effect heterogeneity
 
 **Results of Multivariable Logistic Regression, Propensity Matching, Propensity Adjustment, and Propensity-based Weighting under Conditions of Nonuniform Effect @kurth2006**
 
+\vspace{0.5cm}
+
 *Tobias Kurth, Alexander M. Walker, Robert J. Glynn, K. Arnold Chan, J.Michael Gaziano, Klaus Berger, and James M. Robins*
 
--   Investigated the effect of tissue-type plasminogen activator therapy (tPA) on in-hospital mortality in ischemic stroke patients.
+## Kurth et al. (2006) Background
 
--   Utilized the Stroke Registry of Northwest Germany, 2000-2001
+\vspace{0.5cm}
 
--   Compared 5 methods of treatment effect estimation
+**Investigated the effect of tissue-type plasminogen activator (tPA) therapy on in-hospital ischemic stroke mortality**
 
-## Motivating example
+-   tPA is the gold standard for ischemic stroke patients \vspace{0.25cm}
+-   Often contraindicated
 
-To motivate our simulation, we updated Kurth and colleagues' analyses using 2020-2021 data from the same stroke registry.
+**Data source**
 
-We made a few updates:
+-   The Stroke Registry of Northwest Germany (2000 - 2001) \vspace{0.25cm}
 
-1.  Focused on risk ratios
-2.  Only two methods: inverse probability of treatment and standardized mortality ratio weighted effect estimates.
-3.  Propensity score model coefficients, weighted risks, risk ratios, odds ratios, and corresponding standard errors estimated using M-estimation.
+::: {.notes}
+Speaker notes go here.
+:::
 
-## Motivating example: results
+## 2006: Analysis
+
+**Compared 5 methods of treatment effect estimation**
+
+1.  Multivariable logistic regression adjustment
+
+2.  PS matching
+
+3.  PS regression adjustment
+
+4.  IPTW
+
+5.  SMR weights
+
+Bootstrapped for (weighted) standard error estimates.
+
+## 2006 Results: Propensity Scores
+
+![Probability density function of the propensity score for the 212 tissue plasminogen activator (t-PA)-treated and the 6,057 t-PA untreated ischemic stroke patients registered in a German stroke regisry between 2000 and 2001](pics/ps_kurth.png){width="65%"}
+
+## 2006 Results: Propensity Scores
+
+![](pics/ps_score_kurth.png)
+
+## 2006 Results: Propensity Scores
+
+![](pics/kurth_effect.png)
+
+## 2006 Results: Comparison of effect estiamtes
+
+::: columns
+::: {.column width="50%"}
+**Untrimmed** ![](pics/results_kurth.png){fig-align="center"}
+:::
+
+::: {.column width="50%"}
+**Trimmed** ![](pics/results_kurth_trimmed.png){fig-align="center"}
+:::
+:::
+
+## 2006: Conclusion
+
+-   Low propensity patients different from others wrt death under treatment. \vspace{0.5cm}
+-   Treatment effects are sensitive to the (implicit or explicit) weighting system in the presence of hetereogeneity. \vspace{0.5cm}
+    -   And answer different questions.
+
+## Motivating Example: 2024 (in-progress)
+
+We updated the analysis using 2020-2021 data from the same stroke registry.
+
+Updates:
+
+1.  Focused on risk ratios \vspace{0.25cm}
+2.  SMR & IPT weighted effect estimates. \vspace{0.25cm}
+3.  Utilized M-estimation. (WHY?)
+
+## 2024 Analysis
+
+-   Estimated propensity score using logistic regression. \vspace{0.25cm}
+    -   *Some changes to variables.* \vspace{0.5cm}
+-   IPT weights to target ATE \vspace{0.5cm}
+-   SMR weights to target ATT \vspace{0.5cm}
+-   Hajek & Horvitz Thompson estimators for the IPT weighted risks.
+
+## 2024 Analysis: Hajek vs. Horvitz-Thompson
+
+::: columns
+::: {.column width="50%"}
+Horvitz-Thompson $$
+\hat{Pr}(Y^a=1)=\frac{1}{n}\sum_{i=1}^n{I(A_i=a)Y_i\hat{w_i}}
+$$
+:::
+
+::: {.column width="50%"}
+Hajek $$
+\hat{Pr}(Y^a=1)=\frac{\sum_{i=1}^n{I(A_i=a)Y_i\hat{w_i}}}{\sum_{i=1}^n{\hat{w_i}}I(A_i=a)}
+$$
+:::
+:::
+
+\vspace{0.5cm}
+
+**Why both?**
+
+## 2024 Results: Analysis Sample
+
+-   150,029 ischemic stroke patients \vspace{0.5cm}
+-   Sampled 6,000 \vspace{0.5cm}
+-   20% recieved t-PA treatment. \vspace{0.5cm}
+-   5% overall mortality
+
+## 2024 Results: Propensity Scores
 
 ::: columns
 ::: {.column width="60%"}
@@ -89,50 +165,81 @@ We made a few updates:
 :::
 :::
 
-## Motivating example: results cont'd
+## 2024 Results: Comparison of Effect Estimates
 
-|              | Risk Ratio | 95% CI     |
-|--------------|------------|------------|
-| Crude        | 1.51       | 1.17, 1.95 |
-| IPT weighted | 2.27       | 0.89, 5.76 |
-| SMR weighted | 0.82       | 0.55, 1.21 |
+|       | Risk Ratio | 95% CI     |
+|-------|------------|------------|
+| Crude | 1.51       | 1.17, 1.95 |
+| IPT   | 2.27       | 0.89, 5.76 |
+| SMR   | 0.82       | 0.55, 1.21 |
 
-: Comparison of estimated treatment effect of tPA on in-hospital mortality using IPT and SMR weighted risk ratios
+: Estimated treatment effect of tPA on in-hospital stroke mortality
+
+## 2024 Conclusions
+
+-   Effect of tPA on in-hospital mortality shows considerable treatment effect heterogeneity. \vspace{0.5cm} \vspace{0.5cm}
+-   The effect estimate targeting the ATE indicates tPA harm \vspace{0.5cm}
+-   The effect estimate targeting the ATT indicates tPA benefit \vspace{0.5cm}
+
+What's the right question?
+
+What's identifiable?
+
+## Identification conditions
+
+$A =$ treatment (1: treated, 0: untreated), $W =$ set of measured confounders, $Y^{a} =$ potential outcome under treatment $A=a$
+
+### Average treatment effect (ATE) @hernán2006
+
+1.  Causal consistency: If $A_i = a, Y_i = Y_i^a$
+2.  Conditional exchangeability: \textcolor{red}{$Y^a⊥A|W$}
+3.  Positivity: $Pr(A=a|W=w)>0$, for all $w$ where \textcolor{red}{$f(w)>0$}
+
+### Average treatment effect in the treated (ATT)
+
+1.  Causal consistency: If $A_i = a, Y_i = Y_i^a$
+2.  Partial conditional exchangeability: \textcolor{red}{$Y^{a=0}⊥A|W$}
+3.  Partial positivity: $Pr(A=a|W=w)>0$, for all $w$ where \textcolor{red}{$f(w|A=1)>0$}
 
 ## Simulation
 
--   We define three populations, each with a treatment ($A$) prevalence of 0.2.
-
--   Each population has a different prevalence of confounder $W$: 0.25, 0.5, 0.75
-
--   Treatment assignment:
-
-    -   Under "complete" conditional exchangeability with positivity, the prevalence of treatment does not depend on W.
-
-    -   Under "partial" conditional exchangeability with positivity for the treated, prevalence of treatment does depend on W, i.e.: $$ P(A=1|W=0) = 0 $$ $$ P(A=1|W=1) = 0.8, 0.4, 0.267 $$
+-   Three populations, with confounder $W$ prevalence: 0.25, 0.5, 0.75 \vspace{0.25cm}
+-   Treatment assignment scenarios (marginal 0.2): \vspace{0.25cm}
+    -   Complete positivity: $$0 < P(A=1|W=w) < 1$$ \vspace{0.25cm}
+    -   Partial positivity (in treated): $$0 < P(A=1|W=1) < 1$$ $$P(A=1|W=0) = 0$$
 
 ## Simulation
 
--   Generated potential outcomes under each treatment strategy assuming a treatment effect corresponding to a risk ratio of 0.8.
-    -   Outcome incidence in the untreated ranged from 0.01 (W=0) to 0.08 (W=1).
--   Propensity score model coefficients, weighted risks, risk ratios, odds ratios, and corresponding standard errors estimated using M-estimation.
+-   Treatment effect: risk ratio of 0.8. \vspace{0.25cm}
+-   Untreated outcome incidence 0.01 (W=0) to 0.08 (W=1). \vspace{0.25cm}
+-   Estimated the ATE and ATT.
+    -   Hajek and Horvitz-Thompson estimators for the ATE
+    -   *Why?* \vspace{0.25cm}
+-   Utilized M-estimation \vspace{0.25cm}
+-   Simulation performance measures: bias, ASE, ESE, MSE, 95% CI coverage
 
-## Simulation Results
+## Simulation Results (Hajek)
 
 ![Bias of the log risk ratio in simulated populations under complete exchangeability and partial exchangeability with varying marginal distributions of W.](~/Documents/Development/possim/data/results/figures/mest-homogeneous-hajek-cirg-plot.png){fig-align="center" width="80%"}
 
+## Simulation Results (Horvitz-Thompson)
+
+![Bias of the log risk ratio in simulated populations under complete exchangeability and partial exchangeability with varying marginal distributions of W.](~/Documents/Development/possim/data/results/figures/mest-homogeneous-ht-cirg-plot.png){fig-align="center" width="80%"}
+
 ## Conclusions
 
--   The effect of tPA on in-hospital mortality continues to show considerable treatment effect heterogeneity.
-
--   Targeting the ATE when causal identification conditions are not met results in biased effect estimates.
-
--   If partial causal identification conditions are met for one treatment group, the treatment effect for that group can be consistently estimated.
+-   Targeting the ATE when causal identification conditions are not met results in biased effect estimates. \vspace{0.25cm}
+-   The direction and magnitude of the bias depends on the selected IPT weighted estimator. \vspace{0.25cm}
+-   If partial causal identification conditions are met in one group, can consistently estimate the treatment effect for that group.
 
 ### Still working on:
 
--   Understanding discrepancies by weighted risk estimators (Hajek vs. Horvitz-Thompson)
+-   Articulating discrepancies by weighted risk estimators (Hajek vs. Horvitz-Thompson)
 
 -   Running all 5,000 simulations
+
+## Bonus slide
+
+![](pics/estimating_eqs.png){width="60%"}
 
 ## References

@@ -13,7 +13,7 @@ filenm <- dplyr::last(sort(list.files("data/results/raw", pattern = esttype, ful
 
 all_measures <-readRDS(filenm)
 measures <- all_measures$measures
-measures_summary <- performance_summary(measures)
+measures_summary <- all_measures$measure_summary
 
 
 

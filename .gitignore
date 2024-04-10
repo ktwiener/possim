@@ -62,3 +62,5 @@ data/*
 *.png
 presentation/*
 *.pdf
+.vscode/
+

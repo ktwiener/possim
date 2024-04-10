@@ -43,3 +43,68 @@ popgen <- function(label, effect, pw, sims, n, pa, alpha, delta, eta, pw_a1, pw_
                        100*as.numeric(pw)))
 
 }
+
+
+## Using balancing intercepts
+
+popgen2 <- function(label, effect, pw, sims, n, pa, awcoef, delta, wycoef, yint){
+
+  ns <- sims * n # Full population size
+
+  ## Generate W
+  w <- rbern(ns, pw)
+
+
+  if (awcoef != Inf){
+    ## For full exchangeability
+    ## Find root for exposure model
+    gen_pr_a <- gen_pr_a_wrapper(w, awcoef)
+    roota <- multiroot(f=tosolve, start=c(-1), fxname=gen_pr_a, goalmarg=pa, atol=1e-12)$root
+
+    ## Generate A
+    a <- rbinom(ns, 1, gen_pr_a(roota))
+  } else{
+    ## For partial exchangeability.
+    pa_w1 = pa/pw
+    pa_w0 = 0
+    roota <- NA
+    a <- rbern(ns, w*pa_w1 + (1-w)*pa_w0)
+  }
+
+  pop <- dplyr::tibble(
+    scenario = label,
+    effect = effect,
+    pw = pw,
+    delta = delta,
+    ## Simulation number to group by
+    sim   = rep(1:sims, each = n),
+    a = a,
+    w = w,
+    y0 = rbern(ns, plogis(yint + wycoef*w)),
+    y1 = rbern(ns, plogis(yint + wycoef*w + delta)),
+    y = a*y1 + (1-a)*y0,
+    roota = roota
+  )
+
+  dir.create(sprintf("data/population/%s", Sys.Date()), showWarnings = F)
+
+  write.csv(pop, sprintf("data/population/%s/%s-%s-%s.csv", Sys.Date(),
+                       tolower(stringr::word(label, 1)), tolower(effect),
+                       100*as.numeric(pw)),
+            row.names = FALSE)
+
+}
+
+tosolve <- function(ints, fxname, goalmarg){
+  values <- fxname(ints)                          # simulated individual expected values at given intercept value
+
+  if(is.null(dim(values))){                        # obtain mean of simulated individual expected values
+    empmeans <-  mean(values)
+  }else{
+    empmeans <-  colMeans(values)
+  }
+
+  diff = empmeans - goalmarg                      # difference from empirical mean to goal marginal distribution
+  return(diff)
+}
+

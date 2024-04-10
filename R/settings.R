@@ -89,3 +89,50 @@ setting_lvls <- c("alpha", "y0w0", "y0w1", "y1w0", "y1w1",
                   "pw_a1", "pw_a0", "delta", "eta", "wbeta", "w1OR", "w0OR", "w1RR", "w0RR")
 
 
+
+set_settings2 <- function(w, effects = c("None", "Homogeneous", "Heterogeneous")){
+  tibble::tribble(
+    ~label,                    ~effect,         ~delta    ,  ~awcoef,
+    "Full exchangeability"   ,  "None"         ,  log(1)  ,       log(8),
+    "Partial exchangeability",  "None"         ,  log(1)  ,       Inf,
+    "Full exchangeability"   ,  "Homogeneous"  ,  deff,           log(8),
+    "Partial exchangeability",  "Homogeneous"  ,  deff,           Inf
+  ) %>%
+    dplyr::mutate(
+      sims = sims,
+      n = n,
+      pa = pa,
+      wycoef = log(2),
+      yint = logit(0.06),
+      pw = w
+    ) %>%
+    dplyr::filter(effect %in% effects)
+}
+
+
+calculate_effects <- function(settings){
+  settings |>
+    dplyr::mutate(
+      w    = as.numeric(pw),
+      y0w0 = expit(alpha),
+      y1w0 = expit(alpha + delta),
+      y0w1 = expit(alpha + wbeta),
+      y1w1 = expit(alpha + wbeta + delta + eta),
+      py0  = y0w1*pw_a0 + y0w0*(1-pw_a0),
+      py1  = y1w1*pw_a1 + y1w0*(1-pw_a1),
+      py   = py0*(1-pa) + py1*(pa),
+      ate = exp((1-w)*delta + w*(delta+eta)),
+      att = exp(pw_a1*(delta+eta) + (1-pw_a1)*delta)
+    )
+}
+
+calculate_effects2 <- function(settings){
+  settings |>
+    dplyr::mutate(
+      w    = pw,
+      ate = exp((1-w)*delta + w*(delta)),
+      att = ate
+    )
+}
+
+

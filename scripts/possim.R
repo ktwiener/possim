@@ -1,5 +1,5 @@
 # Script to run through simulations ----
-setwd("~/Documents/Development/possim")
+setwd("~/Development/possim")
 ## Set up environment/libraries ----
 library(dplyr)
 library(geex)
@@ -26,23 +26,21 @@ n <- 6000
 # Prevalence of W in treated
 pws <- c(0.25, 0.5, 0.75)
 
+# Source all the R file with functions
 all_scripts <- list.files("R", pattern = "*.R", full.names = T)
 purrr::walk(all_scripts, source)
-#devtools::load_all()
 
+# Create dataframe of settings based on inputs above. ----
 settings <- purrr::map_dfr(
   pws,
   set_settings2,
   effects = c("None", "Homogeneous")
 )
 
-
+# Save out settings with today's date.
 saveRDS(settings,
         file = sprintf("data/settings/%s-sims%s-scen%s-pa%s-settings.rds", Sys.Date(),
                        settings$sims[1], nrow(settings), settings$pa[1]*10))
-
-# settings_tbl(effects) |>
-#   write.csv(file = sprintf("results/settings-%s-sims%s-scen%s.csv", Sys.Date(), settings$sims[1], nrow(settings)))
 
 ## Create population based on settings ----
 set.seed(20130127)

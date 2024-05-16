@@ -2,7 +2,7 @@
 
 import numpy as np
 import pandas as pd
-import pyreadr
+
 
 
 def run_crude(date, positivity, effect, pw):
@@ -17,7 +17,7 @@ def run_crude(date, positivity, effect, pw):
 
     # Number of simulations to loop through
     sim_start = 1
-    sim_end = 200
+    sim_end = 20
     sim_vec = np.arange(sim_start, sim_end+1)
 
     # Parameters to estimate
@@ -57,18 +57,19 @@ def run_crude(date, positivity, effect, pw):
     outfile = "data/simulations/{0}/crude-{1}-{2}-{3}.csv".format(date, filename, str(np.min(sim_vec)).zfill(5), str(np.max(sim_vec)).zfill(5))
     final.to_csv(outfile, index = False)
 
-run_crude(date = "2024-04-08", positivity = "full", effect = "homogeneous", pw = "75")
-run_crude(date = "2024-04-08", positivity = "full", effect = "homogeneous", pw = "50")
-run_crude(date = "2024-04-08", positivity = "full", effect = "homogeneous", pw = "25")
+newdate = "2024-04-29"
+run_crude(date = newdate, positivity = "full", effect = "homogeneous", pw = "75")
+run_crude(date = newdate, positivity = "full", effect = "homogeneous", pw = "50")
+run_crude(date = newdate, positivity = "full", effect = "homogeneous", pw = "25")
 
-run_crude(date = "2024-04-08", positivity = "full", effect = "none", pw = "75")
-run_crude(date = "2024-04-08", positivity = "full", effect = "none", pw = "50")
-run_crude(date = "2024-04-08", positivity = "full", effect = "none", pw = "25")
+run_crude(date = newdate, positivity = "full", effect = "none", pw = "75")
+run_crude(date = newdate, positivity = "full", effect = "none", pw = "50")
+run_crude(date = newdate, positivity = "full", effect = "none", pw = "25")
 
-run_crude(date = "2024-04-08", positivity = "partial", effect = "homogeneous", pw = "75")
-run_crude(date = "2024-04-08", positivity = "partial", effect = "homogeneous", pw = "50")
-run_crude(date = "2024-04-08", positivity = "partial", effect = "homogeneous", pw = "25")
+run_crude(date = newdate, positivity = "partial", effect = "homogeneous", pw = "75")
+run_crude(date = newdate, positivity = "partial", effect = "homogeneous", pw = "50")
+run_crude(date = newdate, positivity = "partial", effect = "homogeneous", pw = "25")
 
-run_crude(date = "2024-04-08", positivity = "partial", effect = "none", pw = "75")
-run_crude(date = "2024-04-08", positivity = "partial", effect = "none", pw = "50")
-run_crude(date = "2024-04-08", positivity = "partial", effect = "none", pw = "25")
+run_crude(date = newdate, positivity = "partial", effect = "none", pw = "75")
+run_crude(date = newdate, positivity = "partial", effect = "none", pw = "50")
+run_crude(date = newdate, positivity = "partial", effect = "none", pw = "25")

@@ -8,7 +8,7 @@ make_table <- function(measures){
             expest = mean(Coef),
             bias = mean(bias),
             ese = sqrt(var(Coef)),
-            ase = sqrt(mean(Variance)),
+            ase = sqrt(mean(se^2)),
             cov = mean(cov),
             mse = mean(mse)
         ) %>%
@@ -44,20 +44,20 @@ make_table <- function(measures){
 boxplot <- function(measures, effect = "Homogeneous", ipttype = "hajek") {
     patt <- paste0(ipttype, "|smr")
     as_tibble(measures) |>
-    dplyr::select(Param, positivity, efftype, probw, delta, bias) |>
+    dplyr::select(Param = params, positivity, efftype, probw, delta, bias) |>
     dplyr::filter(
         efftype == effect,
         grepl(patt, Param)
     ) |>
     dplyr::mutate(
-        Param = factor(Param, levels = c("delta_hajek", "delta_ht", "delta_smr"), labels = c("IPW", "IPW", "SMR")),
+        Param = factor(Param, levels = c("ef_hajek_lnrr", "ef_ht_lnrr", "ef_smr_lnrr"), labels = c("IPW", "IPW", "SMR")),
         pw = paste0("P(W=1) = ",probw/100),
         positivity = gsub("Full", "Complete", positivity)
     ) |>
     ggplot(mapping = aes(y = bias, x = Param, color = Param)) +
     geom_hline(yintercept = 0) +
     geom_boxplot(coef = 0, outlier.shape = NA, varwidth = T) +
-    scale_y_continuous(limits = c(-1, 1)) +
+    scale_y_continuous(limits = c(-1.5, 1.5)) +
     geom_violin(alpha = 0.5, aes(fill = Param)) +
     facet_grid(vars(positivity), vars(pw), switch = "y") +
     scale_color_grey(guide = "none") +
@@ -83,3 +83,6 @@ boxplot <- function(measures, effect = "Homogeneous", ipttype = "hajek") {
     labs(fill = "Weight type")
 
 }
+
+
+

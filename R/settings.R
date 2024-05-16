@@ -93,16 +93,16 @@ setting_lvls <- c("alpha", "y0w0", "y0w1", "y1w0", "y1w1",
 set_settings2 <- function(w, effects = c("None", "Homogeneous", "Heterogeneous")){
   tibble::tribble(
     ~label,                    ~effect,         ~delta    ,  ~awcoef,
-    "Full exchangeability"   ,  "None"         ,  log(1)  ,       log(8),
+    "Full exchangeability"   ,  "None"         ,  log(1)  ,       log(3),
     "Partial exchangeability",  "None"         ,  log(1)  ,       Inf,
-    "Full exchangeability"   ,  "Homogeneous"  ,  deff,           log(8),
+    "Full exchangeability"   ,  "Homogeneous"  ,  deff,           log(3),
     "Partial exchangeability",  "Homogeneous"  ,  deff,           Inf
   ) %>%
     dplyr::mutate(
       sims = sims,
       n = n,
       pa = pa,
-      wycoef = log(2),
+      wycoef = log(8),
       yint = logit(0.06),
       pw = w
     ) %>%

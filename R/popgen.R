@@ -47,7 +47,7 @@ popgen <- function(label, effect, pw, sims, n, pa, alpha, delta, eta, pw_a1, pw_
 
 ## Using balancing intercepts
 
-popgen2 <- function(label, effect, pw, sims, n, pa, awcoef, delta, wycoef, yint){
+popgen2 <- function(label, effect, pw, sims, n, pa, awcoef, delta, wycoef, yint, writeout = T){
 
   ns <- sims * n # Full population size
 
@@ -86,12 +86,16 @@ popgen2 <- function(label, effect, pw, sims, n, pa, awcoef, delta, wycoef, yint)
     roota = roota
   )
 
-  dir.create(sprintf("data/population/%s", Sys.Date()), showWarnings = F)
+  if (writeout){
+    dir.create(sprintf("data/population/%s", Sys.Date()), showWarnings = F)
 
-  write.csv(pop, sprintf("data/population/%s/%s-%s-%s.csv", Sys.Date(),
-                       tolower(stringr::word(label, 1)), tolower(effect),
-                       100*as.numeric(pw)),
-            row.names = FALSE)
+    write.csv(pop, sprintf("data/population/%s/%s-%s-%s.csv", Sys.Date(),
+                         tolower(stringr::word(label, 1)), tolower(effect),
+                         100*as.numeric(pw)),
+              row.names = FALSE)
+  }
+
+  else return(pop)
 
 }
 

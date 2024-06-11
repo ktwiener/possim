@@ -8,6 +8,7 @@ date <- "2024-05-02"
 measures <- readRDS(sprintf("data/results/raw/%s-measures.rds", date))
 
 mcse <- measures |>
+  dplyr::filter(grepl("lnrr", Param)) %>%
   dplyr::group_by(positivity, efftype, probw, Param) |>
   dplyr::mutate(expest = mean(Coef), nsim = n()) |>
   dplyr::summarize(
@@ -25,6 +26,11 @@ gttbl <- make_table(measures)
 gttbl |>
   gt::gtsave(paste0(date, "-rr.rtf"), "data/results/tables/")
 
+## Table
+gttblor <- make_table(measures, "lnor")
+
+gttblor |>
+  gt::gtsave(paste0(date, "-or.rtf"), "data/results/tables/")
 ## Box Plots
 
 boxplot(measures)

@@ -14,7 +14,7 @@ setup_ef <- function(cht){
     mu <- theta[3:8]
 
     ## Weighted effect measure estimates
-    delta <- theta[9:11]
+    delta <- theta[9:14]
 
     ## Empirically estimate propensity scores
     ef_ps_w1 <- w*(a - alpha[1])
@@ -37,13 +37,20 @@ setup_ef <- function(cht){
     ef_smr_r1 <- a*smr*(y - mu[5])
     ef_smr_r0 <- (1 - a)*smr*(y - mu[6])
 
-    ## Effect estimates
+    ## Effect estimates (risk ratio)
     ef_ht_lnrr <- log(mu[1]/mu[2]) - delta[1]
     ef_hajek_lnrr <- log(mu[3]/mu[4]) - delta[2]
     ef_smr_lnrr <- log(mu[5]/mu[6]) - delta[3]
 
+    ## Effect estimates (odds ratio)
+    ef_ht_lnor <-    log(mu[1]/(1-mu[1])) -  log(mu[2]/(1-mu[2])) - delta[4]
+    ef_hajek_lnor <- log(mu[3]/(1-mu[3])) -  log(mu[4]/(1-mu[4])) - delta[5]
+    ef_smr_lnor <-   log(mu[5]/(1-mu[5])) -  log(mu[6]/(1-mu[6])) - delta[6]
+
+
     cbind(ef_ps_w1, ef_ps_w0, ef_ht_r1, ef_ht_r0, ef_hajek_r1, ef_hajek_r0,
-          ef_smr_r1, ef_smr_r0, ef_ht_lnrr, ef_hajek_lnrr, ef_smr_lnrr)
+          ef_smr_r1, ef_smr_r0, ef_ht_lnrr, ef_hajek_lnrr, ef_smr_lnrr,
+          ef_ht_lnor, ef_hajek_lnor, ef_smr_lnor)
   }
 }
 
@@ -89,7 +96,7 @@ mestimate <- function(cht){
                                # Starting values for root-finding procedure
                                start = c(0.5, 0.5, # PS
                                          0.5, 0.5, 0.1, 0.1, 0.5, 0.5, # Weighted means
-                                         0, 0, 0)) # Effect estimates
+                                         0, 0, 0, 0, 0, 0)) # Effect estimates
   rootm <- proc$root
 
   sandwich <- sandwich_artist(estimating_equation, estimating_function, rootm, n)
@@ -98,7 +105,8 @@ mestimate <- function(cht){
   res <- bind_cols(
     "params" = c("ps_w1", "ps_w0", "ef_ht_r1", "ef_ht_r0",
                  "ef_hajek_r1", "ef_hajek_r0", "ef_smr_r1", "ef_smr_r0",
-                 "ef_ht_lnrr", "ef_hajek_lnrr", "ef_smr_lnrr"),
+                 "ef_ht_lnrr", "ef_hajek_lnrr", "ef_smr_lnrr",
+                 "ef_ht_lnor", "ef_hajek_lnor", "ef_smr_lnor"),
     "roots"=rootm,
     "se"=se)
   res

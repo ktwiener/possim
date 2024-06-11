@@ -41,12 +41,12 @@ measures <-
                       deltaor = exp(delta),
                       deltarr = deltaor/(1-py0+(py0*deltaor)))
 
-      hold <- cbind(results[grepl("lnrr", results$params), ], effects)
+      hold <- cbind(results[grepl("lnrr|lnor", results$params), ], effects)
 
       measures <- hold |>
         dplyr::mutate(
           ## Confirm delta
-          delta = log(testrr),
+          delta = if_else(grepl("lnrr", params), log(testrr), delta),
           ## Measures
           Param = params,
           Coef = roots,

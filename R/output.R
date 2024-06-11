@@ -1,7 +1,8 @@
 
 
-make_table <- function(measures){
+make_table <- function(measures, measest = "lnrr"){
     measures |>
+        dplyr::filter(grepl(measest, Param)) %>%
         dplyr::group_by(positivity, efftype, probw, Param) |>
         dplyr::summarize(
             delta = delta[1],
@@ -12,7 +13,9 @@ make_table <- function(measures){
             cov = mean(cov),
             mse = mean(mse)
         ) %>%
+        ungroup %>%
         dplyr::transmute(
+            effmeasure = measest,
             trteffect = factor(efftype, levels = c("None", "Homogeneous"), labels = c("No treatment effect", "Homogeneous treatment effect")),
             scenario = positivity,
             estimator = case_when(
@@ -29,6 +32,7 @@ make_table <- function(measures){
         arrange(trteffect, scenario, estimator, weight, pw) %>%
         gt(groupname_col = c("trteffect")) %>%
         cols_label(
+            effmeasure = "Measure",
             scenario = "Scenario",
             weight = "Weight",
             estimator = "Estimator",

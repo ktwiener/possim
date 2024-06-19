@@ -11,7 +11,7 @@ make_table <- function(measures, measest = "lnrr"){
             ese = sqrt(var(Coef)),
             ase = sqrt(mean(se^2)),
             cov = mean(cov),
-            mse = mean(mse)
+            mse = sqrt(mean(mse))
         ) %>%
         ungroup %>%
         dplyr::transmute(
@@ -54,34 +54,35 @@ boxplot <- function(measures, effect = "Homogeneous", ipttype = "hajek") {
         grepl(patt, Param)
     ) |>
     dplyr::mutate(
-        Param = factor(Param, levels = c("ef_hajek_lnrr", "ef_ht_lnrr", "ef_smr_lnrr"), labels = c("IPW", "IPW", "SMR")),
-        pw = paste0("P(W=1) = ",probw/100),
+        Param = factor(Param, levels = c("ef_hajek_lnrr", "ef_ht_lnrr", "ef_smr_lnrr"), labels = c("IPT", "IPT", "SMR")),
+        pw = paste0(probw),
         positivity = gsub("Full", "Complete", positivity)
     ) |>
     ggplot(mapping = aes(y = bias, x = Param, color = Param)) +
     geom_hline(yintercept = 0) +
     geom_boxplot(coef = 0, outlier.shape = NA, varwidth = T) +
-    scale_y_continuous(limits = c(-1.5, 1.5)) +
+    scale_y_continuous(limits = c(-0.5, 1.5)) +
     geom_violin(alpha = 0.5, aes(fill = Param)) +
-    facet_grid(vars(positivity), vars(pw), switch = "y") +
-    scale_color_grey(guide = "none") +
-    scale_fill_grey() +
-    theme_classic(base_size = 12) +
+    facet_grid(NULL, vars(pw)) +
+    scale_color_manual(values = c("#EF426F", "#00594C"), guide = "none") +
+    #scale_fill_discrete(c("#EF426F", "#00594C"), guide = "none") +
+    scale_fill_manual(values = c("#EF426F", "#00594C")) +
+    theme_classic(base_size = 18) +
     theme(axis.title.x=element_blank(),
           axis.text.x=element_blank(),
           axis.line.x = element_blank(),
           axis.ticks.x=element_blank(),
-          axis.title.y = element_text(margin = margin(r = -50), size = 12),
-          strip.text.y.left = element_text(angle = 0, size = 12, face = "bold"),
-          strip.text.x.top = element_text(size = 12, face = "bold"),
+          #axis.title.y = element_text(margin = margin(r = -50), size = 12),
+          strip.text.y.left = element_text(angle = 0, size = 18, face = "bold"),
+          strip.text.x.top = element_text(size = 18, face = "bold"),
           strip.background = element_blank(),
           strip.placement = "outside",
           panel.spacing.x = unit(0, 'lines'),
           plot.margin = unit(c(0, 0, 0, 0.6),
                              "inches"),
           legend.position = "bottom",
-          legend.text = element_text(size = 11),
-          legend.title = element_text(size = 12, face = "bold")
+          legend.text = element_text(size = 16),
+          legend.title = element_text(size = 18, face = "bold")
     ) +
     ylab("Error") +
     labs(fill = "Weight type")
